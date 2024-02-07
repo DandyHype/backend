@@ -2,6 +2,7 @@
 'use strict'
 
 var Project = require('../models/project');
+var fs = require('fs');
 
 var controller = {
 
@@ -127,34 +128,34 @@ var controller = {
         var projectId = req.params.id;
         var fileName = 'Imagen no subida';
 
-        if (req.file) {
-            console.log(req.file);
-            var filePath = req.file.path;
+        if (req.files) {
+            var filePath = req.files.image.path;
             var fileSplit = filePath.split('\\');
-            var fileName = fileSplit[2];
-            var extSplit = req.file.originalname.split('\.');
-            var fileExt = extSplit[1]
+            var fileName = fileSplit[1];
+            var extSplit = filePath.split('\.');
+            var fileExt = extSplit[1];
 
-            if (fileExt == 'png' || fileExt == 'gif' || fileExt == 'jpg') {
-
-                Project.findByIdAndUpdate(projectId, { image: fileName }, { new: true })
-                    .then((projectUpdated) => {
-                        if (!projectUpdated) return res.status(404).send({ message: "No existe el proyecto para actualizar la Imagen!" });
-
-                        return res.status(200).send({
-                            project: projectUpdated,
-                            message: "Imagen cargada!"
-                        })
+            if( fileExt == 'png' || fileExt == 'jpg' || fileExt == 'jpeg' || fileExt == 'gif') {
+                Project.findByIdAndUpdate(projectId, {image: fileName}, {new:true})
+                .then((projectUpdated) => {
+                    if (!projectUpdated) return res.status(404).send({ message: "No existe el proyecto para actualizar la Imagen!" });
+    
+                    return res.status(200).send({
+                        project: projectUpdated,
+                        message: "Imagen cargada!"
                     })
-
-                    .catch((err) => {
-                        return res.status(500).send({ message: "Error al actulizar Imagen!" })
-                    });
-
-                return res.status(200).send({
-                    files: fileName
+                })
+    
+                .catch((err) => {
+                    return res.status(500).send({ message: "Error al actulizar Imagen!" })
                 });
+            }else{
+                fs.unlink(filePath, (err) => {
+                    return res.status(200).send({message: "La extension no es valida!"})
+                })
             }
+
+            
 
         } else {
             return res.status(200).send({
